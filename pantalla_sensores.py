@@ -83,6 +83,13 @@ CSS_SENSORES = """
         letter-spacing: 1px;
         margin-bottom: 12px;
     }
+    .sub-seccion {
+        color: white;
+        font-weight: bold;
+        font-size: 0.95rem;
+        margin: 14px 0 6px 0;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
     .sensor-fila {
         background: white;
         border: 1.5px solid #a5d6a7;
@@ -151,7 +158,19 @@ CSS_SENSORES = """
     }
 
     /* Ocultar elementos Streamlit */
-    /* Textos nativos de Streamlit (subheader, labels) en blanco */\n    h1, h2, h3, .stMarkdown p, label, .stSelectbox label,\n    .stDateInput label, .stTextInput label, .stNumberInput label {\n        color: white !important;\n    }\n    .stSelectbox div[data-baseweb="select"] *,\n    .stDateInput input,\n    .stTextInput input,\n    .stNumberInput input {\n        color: #1a2e0a !important;\n    }\n\n    #MainMenu                 { visibility: hidden; }
+    /* Textos nativos de Streamlit (subheader, labels) en blanco */
+    h1, h2, h3, .stMarkdown p, label, .stSelectbox label,
+    .stDateInput label, .stTextInput label, .stNumberInput label {
+        color: white !important;
+    }
+    .stSelectbox div[data-baseweb="select"] *,
+    .stDateInput input,
+    .stTextInput input,
+    .stNumberInput input {
+        color: #1a2e0a !important;
+    }
+
+    #MainMenu                 { visibility: hidden; }
     footer                    { visibility: hidden; }
     header                    { visibility: hidden; }
     [data-testid="stToolbar"] { visibility: hidden; }
@@ -346,7 +365,12 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
 
     # Si no hay datos usar ceros — igual que la laptop
     if not datos:
-        st.warning("Sin lecturas recientes del invernadero.")
+        st.markdown(
+            '<div style="background:#fff3cd;border:2px solid #ffb300;border-radius:12px;'
+            'padding:14px 18px;color:#5c4400;font-weight:bold;margin-bottom:12px;">'
+            'Sin lecturas recientes del invernadero.</div>',
+            unsafe_allow_html=True
+        )
         datos = {
             "humedad_s1": 0, "humedad_s2": 0, "humedad_s3": 0,
             "humedad_a1": 0, "humedad_a2": 0,
@@ -355,7 +379,11 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
         }
     else:
         ts = datos.get("created_at", "")
-        st.caption(f"Ultima lectura: {ts[11:19] if len(ts) > 10 else '—'}")
+        st.markdown(
+            f'<div style="color:#e0f0e0;font-size:0.85rem;margin-bottom:8px;">'
+            f'Ultima lectura: {ts[11:19] if len(ts) > 10 else "—"}</div>',
+            unsafe_allow_html=True
+        )
 
     # ── Dos columnas: SENSORES | CONTROL ─────────────────
     col_sens, col_ctrl = st.columns(2)
@@ -367,17 +395,17 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
     with col_sens:
         st.markdown(f'<div class="panel-titulo" style="background:{c_borde};">LECTURAS EN TIEMPO REAL</div>', unsafe_allow_html=True)
 
-        st.markdown("**Temperatura y Agua**")
+        st.markdown('<div class="sub-seccion">Temperatura y Agua</div>', unsafe_allow_html=True)
         _fila_sensor("Temperatura",  datos.get("temperatura",  0), "°C")
         _fila_sensor("Nivel Agua 1", datos.get("nivel_agua_1", 0), "%")
         _fila_sensor("Nivel Agua 2", datos.get("nivel_agua_2", 0), "%")
 
-        st.markdown("**Humedad Suelo**")
+        st.markdown('<div class="sub-seccion">Humedad Suelo</div>', unsafe_allow_html=True)
         _fila_sensor("Surco 1 Verduras", datos.get("humedad_s1", 0), "%")
         _fila_sensor("Surco 2 Verduras", datos.get("humedad_s2", 0), "%")
         _fila_sensor("Surco 3 Papa",     datos.get("humedad_s3", 0), "%")
 
-        st.markdown("**Humedad Aire**")
+        st.markdown('<div class="sub-seccion">Humedad Aire</div>', unsafe_allow_html=True)
         _fila_sensor("Sensor Aire 1", datos.get("humedad_a1", 0), "%")
         _fila_sensor("Sensor Aire 2", datos.get("humedad_a2", 0), "%")
 
@@ -388,9 +416,9 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
     with col_ctrl:
         st.markdown(f'<div class="panel-titulo" style="background:{c_borde};">CONTROL DE RIEGO</div>', unsafe_allow_html=True)
 
-        st.markdown(f"**{inv}**")
+        st.markdown(f'<div class="sub-seccion" style="color:white;">{inv}</div>', unsafe_allow_html=True)
 
-        st.markdown("**Bomba 1 — Verduras**")
+        st.markdown('<div class="sub-seccion">Bomba 1 — Verduras</div>', unsafe_allow_html=True)
         _bloque_bomba(
             numero        = 1,
             encendida     = datos.get("bomba1_encendida", False),
@@ -403,7 +431,7 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
 
         st.markdown("---")
 
-        st.markdown("**Bomba 2 — Papa**")
+        st.markdown('<div class="sub-seccion">Bomba 2 — Papa</div>', unsafe_allow_html=True)
         _bloque_bomba(
             numero        = 2,
             encendida     = datos.get("bomba2_encendida", False),
