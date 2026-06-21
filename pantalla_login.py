@@ -6,21 +6,19 @@ import streamlit as st
 
 # ── USUARIOS ─────────────────────────────────────────────
 USUARIOS = {
-    "admin":      {"password": "123", "rol": "Administrador"},
-    "asesores":   {"password": "123", "rol": "Asesor Técnico"},
-    "presidente": {"password": "123", "rol": "Presidente"},
-    "junta":      {"password": "123", "rol": "Junta Directiva"},
+    "presidente":      {"password": "123", "rol": "Presidente"},
+    "vicepresidente":  {"password": "123", "rol": "Vicepresidente"},
+    "profesores":      {"password": "123", "rol": "Profesores"},
 }
 
 INVERNADEROS = [
-    "Escuela Elizardo Pérez A",
-    "Colegio Elizardo Pérez B"
+    "Escuela Elizardo Perez A",
+    "Colegio Elizardo Perez B"
 ]
 
 # ── CSS ESTILOS LOGIN ────────────────────────────────────
 CSS_LOGIN = """
 <style>
-    /* Fondo con gradiente verde-azul igual que la laptop */
     .stApp {
         background: linear-gradient(135deg, #1a7a2e 0%, #0d4a6b 50%, #03053A 100%) !important;
         min-height: 100vh;
@@ -28,7 +26,6 @@ CSS_LOGIN = """
     [data-testid="stAppViewContainer"] { background: transparent !important; }
     [data-testid="stMain"]             { background: transparent !important; }
 
-    /* Header azul marino */
     .header-login {
         background: #03053A;
         color: white;
@@ -51,7 +48,6 @@ CSS_LOGIN = """
         margin-top: 4px;
     }
 
-    /* Tarjeta blanca del login */
     .login-card {
         background: rgba(255, 255, 255, 0.97);
         border-radius: 24px;
@@ -81,7 +77,6 @@ CSS_LOGIN = """
         margin-bottom: 20px;
     }
 
-    /* Botón verde igual que la laptop */
     .stButton > button {
         background-color: #2d6e1a !important;
         color: white !important;
@@ -99,13 +94,6 @@ CSS_LOGIN = """
         color: white !important;
     }
 
-    /* Texto acceso rápido */
-    .acceso-rapido {
-        text-align: center;
-        color: #c8e6c9;
-        font-size: 0.85rem;
-        margin-bottom: 8px;
-    }
     .version-txt {
         text-align: center;
         color: #c8e6c9;
@@ -113,7 +101,6 @@ CSS_LOGIN = """
         margin-top: 16px;
     }
 
-    /* Ocultar elementos de Streamlit */
     #MainMenu                 { visibility: hidden; }
     footer                    { visibility: hidden; }
     header                    { visibility: hidden; }
@@ -123,7 +110,7 @@ CSS_LOGIN = """
 
 
 def mostrar_login():
-    """Muestra la pantalla de inicio de sesión."""
+    """Muestra la pantalla de inicio de sesion. Requiere usuario y contrasena siempre."""
 
     st.markdown(CSS_LOGIN, unsafe_allow_html=True)
 
@@ -142,14 +129,14 @@ def mostrar_login():
         st.markdown("""
         <div class="login-card">
             <div class="login-gota">💧</div>
-            <div class="login-titulo">Iniciar Sesión</div>
+            <div class="login-titulo">Iniciar Sesion</div>
             <div class="login-sub">Ingrese sus credenciales de acceso</div>
         </div>
         """, unsafe_allow_html=True)
 
-        # Campos de usuario y contraseña
+        # Campos de usuario y contrasena — unica forma de entrar
         usuario  = st.text_input("Usuario",    placeholder="Ingrese su usuario...")
-        password = st.text_input("Contraseña", type="password", placeholder="••••••••")
+        password = st.text_input("Contrasena", type="password", placeholder="••••••••")
 
         if st.button("INGRESAR AL SISTEMA", use_container_width=True):
             u = usuario.strip().lower()
@@ -157,27 +144,12 @@ def mostrar_login():
             if not u or not p:
                 st.error("Complete todos los campos")
             elif u in USUARIOS and USUARIOS[u]["password"] == p:
-                # Guardar sesión
                 st.session_state.usuario     = u
                 st.session_state.rol         = USUARIOS[u]["rol"]
                 st.session_state.pagina      = "principal"
                 st.session_state.invernadero = INVERNADEROS[0]
                 st.rerun()
             else:
-                st.error("Usuario o contraseña incorrectos")
-
-        # ── ACCESO RÁPIDO ────────────────────────────────
-        st.markdown("---")
-        st.markdown('<div class="acceso-rapido">— Acceso rápido —</div>', unsafe_allow_html=True)
-
-        cols = st.columns(4)
-        for i, (usr, info) in enumerate(USUARIOS.items()):
-            with cols[i]:
-                if st.button(usr, key=f"quick_{usr}"):
-                    st.session_state.usuario     = usr
-                    st.session_state.rol         = info["rol"]
-                    st.session_state.pagina      = "principal"
-                    st.session_state.invernadero = INVERNADEROS[0]
-                    st.rerun()
+                st.error("Usuario o contrasena incorrectos")
 
         st.markdown('<div class="version-txt">Invernadero Tica-Tica v1.0</div>', unsafe_allow_html=True)

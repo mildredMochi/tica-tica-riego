@@ -6,20 +6,22 @@ import streamlit as st
 from datetime import date
 import calendar
 
+from utils_imagenes import tag_imagen
+
 MESES = [
     "Enero","Febrero","Marzo","Abril","Mayo","Junio",
     "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
 ]
 
 INVERNADEROS = [
-    "Escuela Elizardo Pérez A",
-    "Colegio Elizardo Pérez B"
+    "Escuela Elizardo Perez A",
+    "Colegio Elizardo Perez B"
 ]
 
-# Imágenes — mismos nombres que en tu laptop
-IMG_SENSORES  = "Imagenes/f1.png"
-IMG_PROBLEMAS = "Imagenes/b2.png"
-IMG_BASEDATOS = "Imagenes/b3.png"
+# Imagenes — mismos nombres que en tu laptop
+IMG_SENSORES  = "imagenes/f1.png"
+IMG_PROBLEMAS = "imagenes/b2.png"
+IMG_BASEDATOS = "imagenes/b3.png"
 
 # ── CSS ─────────────────────────────────────────────────
 CSS_PRINCIPAL = """
@@ -178,11 +180,11 @@ def mostrar_principal(cargar_riegos_fn, cargar_errores_fn):
     #  TARJETA 1 — SENSORES
     # ══════════════════════════════
     with c1:
+        img_html = tag_imagen(IMG_SENSORES, "card-img")
         st.markdown(f"""
         <div class="card-menu">
             <div class="card-titulo">SENSORES</div>
-            <img src="{IMG_SENSORES}" class="card-img"
-                 onerror="this.style.display='none'">
+            {img_html}
         </div>
         """, unsafe_allow_html=True)
         st.write("")
@@ -200,66 +202,59 @@ def mostrar_principal(cargar_riegos_fn, cargar_errores_fn):
         cal_data = calendar.monthcalendar(yr, mo)
 
         # Cabecera de dias de la semana
-        dias_html = (
-            '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:6px;">'
-        )
+        celdas = ['<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:6px;">']
         for letra in ["L", "M", "X", "J", "V", "S", "D"]:
-            dias_html += (
+            celdas.append(
                 f'<span style="width:26px;text-align:center;font-size:9px;'
                 f'font-weight:bold;color:#1565c0;">{letra}</span>'
             )
 
-        # Dias del mes — misma logica que _dibujar_mini_calendario de la laptop
+        # Dias del mes
         for week in cal_data:
             for d in week:
                 if d == 0:
-                    dias_html += '<span style="width:26px;height:22px;display:inline-block;"></span>'
+                    celdas.append('<span style="width:26px;height:22px;display:inline-block;"></span>')
                 else:
                     d_obj     = date(yr, mo, d)
                     es_hoy    = (d_obj == hoy)
                     es_regado = d_obj in riegos
 
                     if es_hoy and es_regado:
-                        bg, fg = "#1A7F3A", "white"   # CAL_COLOR_HOY_REGADO
+                        bg, fg = "#1A7F3A", "white"
                     elif es_regado:
-                        bg, fg = "#1565c0", "white"   # CAL_COLOR_REGADO
+                        bg, fg = "#1565c0", "white"
                     elif es_hoy:
-                        bg, fg = "#1A7F3A", "white"   # CAL_COLOR_HOY
+                        bg, fg = "#1A7F3A", "white"
                     else:
-                        bg, fg = "#c8e6c9", "#2e7d32" # CAL_COLOR_NORMAL
+                        bg, fg = "#c8e6c9", "#2e7d32"
 
-                    dias_html += (
+                    celdas.append(
                         f'<span style="width:26px;height:22px;background:{bg};color:{fg};'
                         f'border-radius:5px;text-align:center;font-size:10px;font-weight:bold;'
                         f'line-height:22px;display:inline-block;">{d}</span>'
                     )
+        celdas.append('</div>')
+        dias_html = "".join(celdas)
 
-        dias_html += '</div>'
+        leyenda_html = (
+            '<div style="display:flex;justify-content:center;gap:10px;margin-top:6px;font-size:10px;">'
+            '<span><span style="background:#1565c0;color:white;border-radius:3px;'
+            'padding:1px 6px;font-size:9px;">&#9632;</span> Regado</span>'
+            '<span><span style="background:#1A7F3A;color:white;border-radius:3px;'
+            'padding:1px 6px;font-size:9px;">&#9632;</span> Hoy</span>'
+            '</div>'
+        )
 
-        # Leyenda igual que la laptop
-        leyenda_html = """
-        <div style="display:flex;justify-content:center;gap:10px;margin-top:6px;font-size:10px;">
-            <span>
-                <span style="background:#1565c0;color:white;border-radius:3px;
-                      padding:1px 6px;font-size:9px;">&#9632;</span> Regado
-            </span>
-            <span>
-                <span style="background:#1A7F3A;color:white;border-radius:3px;
-                      padding:1px 6px;font-size:9px;">&#9632;</span> Hoy
-            </span>
-        </div>
-        """
-
-        st.markdown(f"""
-        <div class="card-menu" style="min-height:300px;">
-            <div class="card-titulo">CALENDARIO DE RIEGO</div>
-            <div style="font-size:11px;font-weight:bold;color:#1565c0;margin:4px 0;">
-                {MESES[mo-1]}&nbsp;&nbsp;{yr}
-            </div>
-            {dias_html}
-            {leyenda_html}
-        </div>
-        """, unsafe_allow_html=True)
+        tarjeta_cal = (
+            f'<div class="card-menu" style="min-height:300px;">'
+            f'<div class="card-titulo">CALENDARIO DE RIEGO</div>'
+            f'<div style="font-size:11px;font-weight:bold;color:#1565c0;margin:4px 0;">'
+            f'{MESES[mo-1]}&nbsp;&nbsp;{yr}</div>'
+            f'{dias_html}'
+            f'{leyenda_html}'
+            f'</div>'
+        )
+        st.markdown(tarjeta_cal, unsafe_allow_html=True)
         st.write("")
         if st.button("Ingresar", key="btn_calendario"):
             st.session_state.pagina = "calendario"
@@ -274,11 +269,11 @@ def mostrar_principal(cargar_riegos_fn, cargar_errores_fn):
         else:
             badge = '<div class="badge-ok">Todos los dispositivos OK</div>'
 
+        img_html = tag_imagen(IMG_PROBLEMAS, "card-img")
         st.markdown(f"""
         <div class="card-menu">
             <div class="card-titulo">PROBLEMAS TECNICOS</div>
-            <img src="{IMG_PROBLEMAS}" class="card-img"
-                 onerror="this.style.display='none'">
+            {img_html}
             {badge}
         </div>
         """, unsafe_allow_html=True)
@@ -291,16 +286,16 @@ def mostrar_principal(cargar_riegos_fn, cargar_errores_fn):
     #  TARJETA 4 — BASE DE DATOS
     # ══════════════════════════════
     with c4:
+        img_html = tag_imagen(IMG_BASEDATOS, "card-img")
         st.markdown(f"""
         <div class="card-menu">
             <div style="background:#2d6e1a;color:white;border-radius:6px;
                         padding:2px 10px;font-size:10px;font-weight:bold;
                         align-self:flex-start;">NUEVO</div>
             <div class="card-titulo">BASE DE DATOS</div>
-            <img src="{IMG_BASEDATOS}" class="card-img"
-                 onerror="this.style.display='none'">
+            {img_html}
             <div style="font-size:11px;color:#1565c0;">
-                Historial · Registros · Lecturas · Logs
+                Historial &middot; Registros &middot; Lecturas &middot; Logs
             </div>
         </div>
         """, unsafe_allow_html=True)

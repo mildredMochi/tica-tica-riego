@@ -5,14 +5,16 @@
 import streamlit as st
 from datetime import date
 
+from utils_imagenes import tag_imagen
+
 INVERNADEROS = [
     "Escuela Elizardo Pérez A",
     "Colegio Elizardo Pérez B"
 ]
 
 # Imágenes — mismos nombres que en la laptop
-IMG_ESCUELA = "Imagenes/E1.jpg"
-IMG_COLEGIO = "Imagenes/E2.jpg"
+IMG_ESCUELA = "imagenes/E1.jpg"
+IMG_COLEGIO = "imagenes/E2.jpg"
 
 # ── CSS ─────────────────────────────────────────────────
 CSS_SENSORES = """
@@ -180,14 +182,14 @@ def mostrar_seleccion_invernadero():
 
     # ── Invernadero A ────────────────────────────────────
     with c1:
-        st.markdown(f"""
-        <div class="inv-card-a">
-            <img src="{IMG_ESCUELA}" class="inv-card-img"
-                 onerror="this.style.display='none'">
-            <div class="inv-nombre">Escuela Elizardo Perez A</div>
-            <div style="color:#6b7c5a;font-size:0.88rem;">Invernadero A — Verduras y Papa</div>
-        </div>
-        """, unsafe_allow_html=True)
+        img_html = tag_imagen(IMG_ESCUELA, "inv-card-img")
+        tarjeta = (
+            f'<div class="inv-card-a">{img_html}'
+            f'<div class="inv-nombre">Escuela Elizardo Perez A</div>'
+            f'<div style="color:#6b7c5a;font-size:0.88rem;">Invernadero A - Verduras y Papa</div>'
+            f'</div>'
+        )
+        st.markdown(tarjeta, unsafe_allow_html=True)
         st.write("")
         if st.button("Ingresar", key="inv_a", use_container_width=True):
             st.session_state.sensor_invernadero = INVERNADEROS[0]
@@ -196,14 +198,14 @@ def mostrar_seleccion_invernadero():
 
     # ── Invernadero B ────────────────────────────────────
     with c2:
-        st.markdown(f"""
-        <div class="inv-card-b">
-            <img src="{IMG_COLEGIO}" class="inv-card-img"
-                 onerror="this.style.display='none'">
-            <div class="inv-nombre">Colegio Elizardo Perez B</div>
-            <div style="color:#6b7c5a;font-size:0.88rem;">Invernadero B — Verduras y Papa</div>
-        </div>
-        """, unsafe_allow_html=True)
+        img_html = tag_imagen(IMG_COLEGIO, "inv-card-img")
+        tarjeta = (
+            f'<div class="inv-card-b">{img_html}'
+            f'<div class="inv-nombre">Colegio Elizardo Perez B</div>'
+            f'<div style="color:#6b7c5a;font-size:0.88rem;">Invernadero B - Verduras y Papa</div>'
+            f'</div>'
+        )
+        st.markdown(tarjeta, unsafe_allow_html=True)
         st.write("")
         if st.button("Ingresar", key="inv_b", use_container_width=True):
             st.session_state.sensor_invernadero = INVERNADEROS[1]

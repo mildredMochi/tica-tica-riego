@@ -6,6 +6,8 @@ import streamlit as st
 import calendar
 from datetime import date, timedelta
 
+from utils_imagenes import tag_imagen
+
 MESES = [
     "Enero","Febrero","Marzo","Abril","Mayo","Junio",
     "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
@@ -18,8 +20,8 @@ INVERNADEROS = [
     "Colegio Elizardo Perez B"
 ]
 
-IMG_ESCUELA = "Imagenes/E1.jpg"
-IMG_COLEGIO = "Imagenes/E2.jpg"
+IMG_ESCUELA = "imagenes/E1.jpg"
+IMG_COLEGIO = "imagenes/E2.jpg"
 
 # Colores igual que la laptop
 CAL_DAY_VERDURAS_BG = "#18692F"  # verde oscuro — verduras regadas
@@ -210,13 +212,12 @@ def _mostrar_seleccion_calendario():
     c1, c2 = st.columns(2)
 
     with c1:
-        st.markdown(f"""
-        <div class="inv-card-a">
-            <img src="{IMG_ESCUELA}" class="inv-card-img"
-                 onerror="this.style.display='none'">
-            <div class="inv-nombre">Escuela Elizardo Perez A</div>
-        </div>
-        """, unsafe_allow_html=True)
+        img_html = tag_imagen(IMG_ESCUELA, "inv-card-img")
+        tarjeta = (
+            f'<div class="inv-card-a">{img_html}'
+            f'<div class="inv-nombre">Escuela Elizardo Perez A</div></div>'
+        )
+        st.markdown(tarjeta, unsafe_allow_html=True)
         st.write("")
         if st.button("Ver Calendario", key="cal_inv_a", use_container_width=True):
             st.session_state.cal_invernadero = INVERNADEROS[0]
@@ -226,13 +227,12 @@ def _mostrar_seleccion_calendario():
             st.rerun()
 
     with c2:
-        st.markdown(f"""
-        <div class="inv-card-b">
-            <img src="{IMG_COLEGIO}" class="inv-card-img"
-                 onerror="this.style.display='none'">
-            <div class="inv-nombre">Colegio Elizardo Perez B</div>
-        </div>
-        """, unsafe_allow_html=True)
+        img_html = tag_imagen(IMG_COLEGIO, "inv-card-img")
+        tarjeta = (
+            f'<div class="inv-card-b">{img_html}'
+            f'<div class="inv-nombre">Colegio Elizardo Perez B</div></div>'
+        )
+        st.markdown(tarjeta, unsafe_allow_html=True)
         st.write("")
         if st.button("Ver Calendario", key="cal_inv_b", use_container_width=True):
             st.session_state.cal_invernadero = INVERNADEROS[1]
@@ -367,48 +367,40 @@ def _mostrar_calendario_completo(cargar_riegos_fn, registrar_riego_fn,
         # Proximo riego general
         futuras = sorted([f for f in riegos if f > hoy])
         if futuras:
-            prox_txt = f"Proximo riego:\n{futuras[0].strftime('%d / %m / %Y')}"
+            prox_txt = f"Proximo riego:<br>{futuras[0].strftime('%d / %m / %Y')}"
         elif riegos:
             ultimo = max(riegos.keys())
-            prox_txt = f"Ultimo riego:\n{ultimo.strftime('%d / %m / %Y')}"
+            prox_txt = f"Ultimo riego:<br>{ultimo.strftime('%d / %m / %Y')}"
         else:
             prox_txt = "Sin riegos registrados"
 
-        st.markdown(f"""
-        <div class="panel-info">
-            <div style="font-size:1rem;font-weight:bold;color:#1a2e0a;margin-bottom:8px;">Informacion</div>
-            <div style="font-size:0.85rem;color:{c_nav};font-weight:bold;margin-bottom:12px;">{prox_txt}</div>
-            <hr style="border:1px solid {c_borde};margin:8px 0;">
+        prox_v = _calcular_proximo_verduras(riegos)
+        prox_p = _calcular_proximo_papa(riegos)
 
-            <!-- Verduras -->
-            <div class="card-prox-v">
-                <div style="font-size:0.9rem;font-weight:bold;color:{CAL_DAY_VERDURAS_BG};">Proximo Riego</div>
-                <div style="font-size:0.75rem;color:#6b7c5a;">Verduras — cada 2 dias</div>
-                <div style="font-size:0.95rem;font-weight:bold;color:#1a2e0a;margin-top:4px;">
-                    {DIAS_ES[_calcular_proximo_verduras(riegos).weekday()]}
-                    {_calcular_proximo_verduras(riegos).day}
-                    {MESES[_calcular_proximo_verduras(riegos).month-1]}
-                </div>
-                <div style="font-size:0.85rem;font-weight:bold;color:{CAL_DAY_VERDURAS_BG};">
-                    {_dias_restantes_texto(_calcular_proximo_verduras(riegos))}
-                </div>
-            </div>
-
-            <!-- Papa -->
-            <div class="card-prox-p">
-                <div style="font-size:0.9rem;font-weight:bold;color:{CAL_DAY_PAPA_BG};">Proximo Riego</div>
-                <div style="font-size:0.75rem;color:#6b7c5a;">Papa — cada 2 semanas</div>
-                <div style="font-size:0.95rem;font-weight:bold;color:#1a2e0a;margin-top:4px;">
-                    {DIAS_ES[_calcular_proximo_papa(riegos).weekday()]}
-                    {_calcular_proximo_papa(riegos).day}
-                    {MESES[_calcular_proximo_papa(riegos).month-1]}
-                </div>
-                <div style="font-size:0.85rem;font-weight:bold;color:{CAL_DAY_PAPA_BG};">
-                    {_dias_restantes_texto(_calcular_proximo_papa(riegos))}
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        panel_html = (
+            f'<div class="panel-info">'
+            f'<div style="font-size:1rem;font-weight:bold;color:#1a2e0a;margin-bottom:8px;">Informacion</div>'
+            f'<div style="font-size:0.85rem;color:{c_nav};font-weight:bold;margin-bottom:12px;">{prox_txt}</div>'
+            f'<hr style="border:1px solid {c_borde};margin:8px 0;">'
+            f'<div class="card-prox-v">'
+            f'<div style="font-size:0.9rem;font-weight:bold;color:{CAL_DAY_VERDURAS_BG};">Proximo Riego</div>'
+            f'<div style="font-size:0.75rem;color:#6b7c5a;">Verduras - cada 2 dias</div>'
+            f'<div style="font-size:0.95rem;font-weight:bold;color:#1a2e0a;margin-top:4px;">'
+            f'{DIAS_ES[prox_v.weekday()]} {prox_v.day} {MESES[prox_v.month-1]}</div>'
+            f'<div style="font-size:0.85rem;font-weight:bold;color:{CAL_DAY_VERDURAS_BG};">'
+            f'{_dias_restantes_texto(prox_v)}</div>'
+            f'</div>'
+            f'<div class="card-prox-p">'
+            f'<div style="font-size:0.9rem;font-weight:bold;color:{CAL_DAY_PAPA_BG};">Proximo Riego</div>'
+            f'<div style="font-size:0.75rem;color:#6b7c5a;">Papa - cada 2 semanas</div>'
+            f'<div style="font-size:0.95rem;font-weight:bold;color:#1a2e0a;margin-top:4px;">'
+            f'{DIAS_ES[prox_p.weekday()]} {prox_p.day} {MESES[prox_p.month-1]}</div>'
+            f'<div style="font-size:0.85rem;font-weight:bold;color:{CAL_DAY_PAPA_BG};">'
+            f'{_dias_restantes_texto(prox_p)}</div>'
+            f'</div>'
+            f'</div>'
+        )
+        st.markdown(panel_html, unsafe_allow_html=True)
 
     # ── Registrar riego ──────────────────────────────────
     st.markdown("---")
