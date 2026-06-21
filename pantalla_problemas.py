@@ -126,7 +126,7 @@ CSS_PROBLEMAS = """
         color: white !important;
     }
 
-    #MainMenu                 { visibility: hidden; }
+    /* Textos nativos de Streamlit (subheader, labels) en blanco */\n    h1, h2, h3, .stMarkdown p, label, .stSelectbox label,\n    .stDateInput label, .stTextInput label, .stNumberInput label {\n        color: white !important;\n    }\n    .stSelectbox div[data-baseweb="select"] *,\n    .stDateInput input,\n    .stTextInput input,\n    .stNumberInput input {\n        color: #1a2e0a !important;\n    }\n\n    #MainMenu                 { visibility: hidden; }
     footer                    { visibility: hidden; }
     header                    { visibility: hidden; }
     [data-testid="stToolbar"] { visibility: hidden; }

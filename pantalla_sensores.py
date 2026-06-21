@@ -8,8 +8,8 @@ from datetime import date
 from utils_imagenes import tag_imagen
 
 INVERNADEROS = [
-    "Escuela Elizardo Pérez A",
-    "Colegio Elizardo Pérez B"
+    "Escuela Elizardo Perez A",
+    "Colegio Elizardo Perez B"
 ]
 
 # Imágenes — mismos nombres que en la laptop
@@ -151,7 +151,7 @@ CSS_SENSORES = """
     }
 
     /* Ocultar elementos Streamlit */
-    #MainMenu                 { visibility: hidden; }
+    /* Textos nativos de Streamlit (subheader, labels) en blanco */\n    h1, h2, h3, .stMarkdown p, label, .stSelectbox label,\n    .stDateInput label, .stTextInput label, .stNumberInput label {\n        color: white !important;\n    }\n    .stSelectbox div[data-baseweb="select"] *,\n    .stDateInput input,\n    .stTextInput input,\n    .stNumberInput input {\n        color: #1a2e0a !important;\n    }\n\n    #MainMenu                 { visibility: hidden; }
     footer                    { visibility: hidden; }
     header                    { visibility: hidden; }
     [data-testid="stToolbar"] { visibility: hidden; }

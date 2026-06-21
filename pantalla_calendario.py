@@ -146,6 +146,21 @@ CSS_CALENDARIO = """
         color: white !important;
     }
 
+    /* Textos nativos de Streamlit (subheader, labels) en blanco
+       para que se vean sobre el fondo oscuro */
+    h1, h2, h3, .stMarkdown p, label, .stSelectbox label,
+    .stDateInput label, .stTextInput label, .stNumberInput label {
+        color: white !important;
+    }
+    /* El contenido DENTRO de los inputs (texto que escribe el usuario)
+       se mantiene oscuro para que se lea sobre fondo claro */
+    .stSelectbox div[data-baseweb="select"] *,
+    .stDateInput input,
+    .stTextInput input,
+    .stNumberInput input {
+        color: #1a2e0a !important;
+    }
+
     #MainMenu                 { visibility: hidden; }
     footer                    { visibility: hidden; }
     header                    { visibility: hidden; }

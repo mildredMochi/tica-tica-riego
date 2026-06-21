@@ -121,7 +121,7 @@ CSS_PRINCIPAL = """
         background-color: #1a5010 !important;
         color: white !important;
     }
-    #MainMenu                 { visibility: hidden; }
+    /* Textos nativos de Streamlit (subheader, labels) en blanco */\n    h1, h2, h3, .stMarkdown p, label, .stSelectbox label,\n    .stDateInput label, .stTextInput label, .stNumberInput label {\n        color: white !important;\n    }\n    .stSelectbox div[data-baseweb="select"] *,\n    .stDateInput input,\n    .stTextInput input,\n    .stNumberInput input {\n        color: #1a2e0a !important;\n    }\n\n    #MainMenu                 { visibility: hidden; }
     footer                    { visibility: hidden; }
     header                    { visibility: hidden; }
     [data-testid="stToolbar"] { visibility: hidden; }
@@ -153,10 +153,13 @@ def mostrar_principal(cargar_riegos_fn, cargar_errores_fn):
     # ── SELECTOR INVERNADERO + CERRAR SESION ─────────────
     col_inv, col_cerrar = st.columns([3, 1])
     with col_inv:
+        inv_actual = st.session_state.get("invernadero", INVERNADEROS[0])
+        if inv_actual not in INVERNADEROS:
+            inv_actual = INVERNADEROS[0]
         inv = st.selectbox(
             "Invernadero activo:",
             INVERNADEROS,
-            index=INVERNADEROS.index(st.session_state.get("invernadero", INVERNADEROS[0]))
+            index=INVERNADEROS.index(inv_actual)
         )
         st.session_state.invernadero = inv
     with col_cerrar:
