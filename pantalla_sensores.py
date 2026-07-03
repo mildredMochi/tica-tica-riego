@@ -8,8 +8,8 @@ from datetime import date
 from utils_imagenes import tag_imagen
 
 INVERNADEROS = [
-    "Escuela Elizardo Perez A",
-    "Colegio Elizardo Perez B"
+    "Escuela Elizardo Pérez A",
+    "Colegio Elizardo Pérez B"
 ]
 
 # Imágenes — mismos nombres que en la laptop
@@ -194,18 +194,18 @@ def mostrar_seleccion_invernadero():
         st.rerun()
 
     st.markdown("---")
-    st.markdown('<div style="text-align:center;font-size:1.4rem;font-weight:bold;color:white;margin-bottom:6px;">Selecciona el invernadero</div>', unsafe_allow_html=True)
-    st.markdown('<div style="text-align:center;color:#c8e6c9;margin-bottom:28px;">¿En cual invernadero deseas ver los sensores y controlar el riego?</div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center;font-size:1.4rem;font-weight:bold;color:white;margin-bottom:6px;">Selecciona la zona de riego</div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center;color:#c8e6c9;margin-bottom:28px;">Los sensores son compartidos. Cada zona tiene su propio tanque y bomba.</div>', unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
 
-    # ── Invernadero A ────────────────────────────────────
+    # ── Zona A ────────────────────────────────────
     with c1:
         img_html = tag_imagen(IMG_ESCUELA, "inv-card-img")
         tarjeta = (
             f'<div class="inv-card-a">{img_html}'
-            f'<div class="inv-nombre">Escuela Elizardo Perez A</div>'
-            f'<div style="color:#6b7c5a;font-size:0.88rem;">Invernadero A - Verduras y Papa</div>'
+            f'<div class="inv-nombre">Escuela Elizardo Pérez A</div>'
+            f'<div style="color:#6b7c5a;font-size:0.88rem;">Zona A — Verduras y Papa</div>'
             f'</div>'
         )
         st.markdown(tarjeta, unsafe_allow_html=True)
@@ -215,13 +215,13 @@ def mostrar_seleccion_invernadero():
             st.session_state.invernadero        = INVERNADEROS[0]
             st.rerun()
 
-    # ── Invernadero B ────────────────────────────────────
+    # ── Zona B ────────────────────────────────────
     with c2:
         img_html = tag_imagen(IMG_COLEGIO, "inv-card-img")
         tarjeta = (
             f'<div class="inv-card-b">{img_html}'
-            f'<div class="inv-nombre">Colegio Elizardo Perez B</div>'
-            f'<div style="color:#6b7c5a;font-size:0.88rem;">Invernadero B - Verduras y Papa</div>'
+            f'<div class="inv-nombre">Colegio Elizardo Pérez B</div>'
+            f'<div style="color:#6b7c5a;font-size:0.88rem;">Zona B — Verduras y Papa</div>'
             f'</div>'
         )
         st.markdown(tarjeta, unsafe_allow_html=True)
@@ -322,6 +322,11 @@ def _bloque_bomba(numero, encendida, nivel_agua, color_panel,
 # ════════════════════════════════════════════════════════
 #  VISTA 2 — PANEL PRINCIPAL DE SENSORES Y CONTROL
 #  (igual que _mostrar_panel_principal en la laptop)
+#
+#  NOTA IMPORTANTE: los sensores son COMPARTIDOS entre las
+#  dos zonas (A y B) — no se filtran por invernadero. Lo unico
+#  que cambia entre paneles es que Bomba 1 controla la zona A
+#  y Bomba 2 controla la zona B, cada una con su propio tanque.
 # ════════════════════════════════════════════════════════
 def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
                             guardar_bomba_fn, registrar_riego_fn, agregar_log_fn):
@@ -329,20 +334,21 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
     Panel completo de lecturas y control de bombas.
 
     Parametros:
-        cargar_sensores_fn  — carga ultima lectura de sensores
-        cargar_historial_fn — carga historial para graficos
+        cargar_sensores_fn  — carga ultima lectura de sensores (compartida)
+        cargar_historial_fn — carga historial para graficos (compartido)
         guardar_bomba_fn    — guarda estado de bomba en Supabase
         registrar_riego_fn  — registra un riego en Supabase
         agregar_log_fn      — agrega log de actividad en Supabase
     """
     st.markdown(CSS_SENSORES, unsafe_allow_html=True)
 
-    inv   = st.session_state.sensor_invernadero
-    es_a  = "A" in inv or "Escuela" in inv
+    inv       = st.session_state.sensor_invernadero
+    es_zona_a = "A" in inv or "Escuela" in inv
+    numero_bomba_propia = 1 if es_zona_a else 2
 
-    # Color segun invernadero — igual que colores_invernadero() en la laptop
-    c_hdr   = "#1A4D1D" if es_a else "#03053A"
-    c_borde = "#2E7D32" if es_a else "#1565C0"
+    # Color segun zona — igual que colores_invernadero() en la laptop
+    c_hdr   = "#1A4D1D" if es_zona_a else "#03053A"
+    c_borde = "#2E7D32" if es_zona_a else "#1565C0"
 
     # ── Header ───────────────────────────────────────────
     st.markdown(f"""
@@ -359,22 +365,23 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
 
     st.markdown("---")
 
-    # ── Cargar datos ─────────────────────────────────────
+    # ── Cargar datos (compartidos entre zonas, sin filtrar) ──
     with st.spinner("Cargando lecturas..."):
-        datos = cargar_sensores_fn(inv)
+        datos = cargar_sensores_fn()
 
     # Si no hay datos usar ceros — igual que la laptop
     if not datos:
         st.markdown(
             '<div style="background:#fff3cd;border:2px solid #ffb300;border-radius:12px;'
             'padding:14px 18px;color:#5c4400;font-weight:bold;margin-bottom:12px;">'
-            'Sin lecturas recientes del invernadero.</div>',
+            'Sin lecturas recientes.</div>',
             unsafe_allow_html=True
         )
         datos = {
             "humedad_s1": 0, "humedad_s2": 0, "humedad_s3": 0,
             "humedad_a1": 0, "humedad_a2": 0,
-            "temperatura": 0, "nivel_agua_1": 0, "nivel_agua_2": 0,
+            "temperatura_1": 0, "temperatura_2": 0,
+            "nivel_agua_1": 0, "nivel_agua_2": 0,
             "bomba1_encendida": False, "bomba2_encendida": False,
         }
     else:
@@ -389,14 +396,15 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
     col_sens, col_ctrl = st.columns(2)
 
     # ════════════════════════════
-    #  COLUMNA IZQUIERDA — SENSORES
+    #  COLUMNA IZQUIERDA — SENSORES (compartidos)
     #  (igual que columna izquierda de la laptop)
     # ════════════════════════════
     with col_sens:
         st.markdown(f'<div class="panel-titulo" style="background:{c_borde};">LECTURAS EN TIEMPO REAL</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="sub-seccion">Temperatura y Agua</div>', unsafe_allow_html=True)
-        _fila_sensor("Temperatura",  datos.get("temperatura",  0), "°C")
+        _fila_sensor("Temp. Aire 1", datos.get("temperatura_1", 0), "°C")
+        _fila_sensor("Temp. Aire 2", datos.get("temperatura_2", 0), "°C")
         _fila_sensor("Nivel Agua 1", datos.get("nivel_agua_1", 0), "%")
         _fila_sensor("Nivel Agua 2", datos.get("nivel_agua_2", 0), "%")
 
@@ -411,31 +419,23 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
 
     # ════════════════════════════
     #  COLUMNA DERECHA — CONTROL DE RIEGO
-    #  (igual que columna derecha de la laptop)
+    #  Solo se muestra la bomba propia de esta zona.
     # ════════════════════════════
     with col_ctrl:
         st.markdown(f'<div class="panel-titulo" style="background:{c_borde};">CONTROL DE RIEGO</div>', unsafe_allow_html=True)
 
         st.markdown(f'<div class="sub-seccion" style="color:white;">{inv}</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="sub-seccion">Bomba 1 — Verduras</div>', unsafe_allow_html=True)
-        _bloque_bomba(
-            numero        = 1,
-            encendida     = datos.get("bomba1_encendida", False),
-            nivel_agua    = datos.get("nivel_agua_1", 0),
-            color_panel   = c_borde,
-            guardar_bomba_fn   = guardar_bomba_fn,
-            registrar_riego_fn = registrar_riego_fn,
-            agregar_log_fn     = agregar_log_fn,
-        )
+        etiqueta_bomba = "Bomba 1 — Verduras (tanque A)" if numero_bomba_propia == 1 else "Bomba 2 — Papa (tanque B)"
+        st.markdown(f'<div class="sub-seccion">{etiqueta_bomba}</div>', unsafe_allow_html=True)
 
-        st.markdown("---")
+        campo_bomba  = "bomba1_encendida" if numero_bomba_propia == 1 else "bomba2_encendida"
+        campo_nivel  = "nivel_agua_1" if numero_bomba_propia == 1 else "nivel_agua_2"
 
-        st.markdown('<div class="sub-seccion">Bomba 2 — Papa</div>', unsafe_allow_html=True)
         _bloque_bomba(
-            numero        = 2,
-            encendida     = datos.get("bomba2_encendida", False),
-            nivel_agua    = datos.get("nivel_agua_2", 0),
+            numero        = numero_bomba_propia,
+            encendida     = datos.get(campo_bomba, False),
+            nivel_agua    = datos.get(campo_nivel, 0),
             color_panel   = c_borde,
             guardar_bomba_fn   = guardar_bomba_fn,
             registrar_riego_fn = registrar_riego_fn,
@@ -445,7 +445,7 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
     # ── Graficos historicos ──────────────────────────────
     st.markdown("---")
     st.subheader("Historial de Lecturas")
-    historial = cargar_historial_fn(inv)
+    historial = cargar_historial_fn()
     if historial:
         import pandas as pd
         df = pd.DataFrame(historial)
@@ -456,9 +456,10 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
             st.line_chart(df.set_index("hora")[cols_suelo], height=200)
             st.caption("Humedad suelo — Surcos 1, 2 y 3")
 
-        if "temperatura" in df.columns:
-            st.line_chart(df.set_index("hora")[["temperatura"]], height=160)
-            st.caption("Temperatura ambiente")
+        cols_temp = [c for c in ["temperatura_1", "temperatura_2"] if c in df.columns]
+        if cols_temp:
+            st.line_chart(df.set_index("hora")[cols_temp], height=160)
+            st.caption("Temperatura ambiente — Sensores 1 y 2")
     else:
         st.info("Sin historial disponible aun.")
 

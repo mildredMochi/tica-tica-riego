@@ -41,16 +41,23 @@ def get_supabase() -> Client:
 
 # ════════════════════════════════════════════════════════════════
 #  SENSORES
+#  NOTA: Hay un solo set de sensores compartido por las dos zonas
+#  de riego (A y B). Ya NO se filtra por invernadero — se toma
+#  siempre la ultima lectura que exista, sin importar el nombre
+#  que traiga el campo "invernadero".
 # ════════════════════════════════════════════════════════════════
-def cargar_sensores_recientes(invernadero: str) -> dict:
-    """Carga la ultima lectura de sensores — igual que la laptop."""
+def cargar_sensores_recientes(invernadero: str = None) -> dict:
+    """
+    Carga la ultima lectura de sensores (compartida entre zonas).
+    El parametro invernadero se deja opcional por compatibilidad,
+    pero ya NO se usa para filtrar.
+    """
     db = get_supabase()
     if not db:
         return {}
     try:
         resp = db.table("lecturas_sensores")\
             .select("*")\
-            .eq("invernadero", invernadero)\
             .order("created_at", desc=True)\
             .limit(1)\
             .execute()
@@ -60,15 +67,18 @@ def cargar_sensores_recientes(invernadero: str) -> dict:
         return {}
 
 
-def cargar_historial_sensores(invernadero: str, limite: int = 50) -> list:
-    """Carga historial de lecturas para graficos."""
+def cargar_historial_sensores(invernadero: str = None, limite: int = 50) -> list:
+    """
+    Carga historial de lecturas para graficos (compartido entre zonas).
+    El parametro invernadero se deja opcional por compatibilidad,
+    pero ya NO se usa para filtrar.
+    """
     db = get_supabase()
     if not db:
         return []
     try:
         resp = db.table("lecturas_sensores")\
             .select("*")\
-            .eq("invernadero", invernadero)\
             .order("created_at", desc=True)\
             .limit(limite)\
             .execute()
@@ -79,25 +89,39 @@ def cargar_historial_sensores(invernadero: str, limite: int = 50) -> list:
 
 
 def guardar_estado_bomba(invernadero: str, bomba: int, encendida: bool) -> bool:
-    """Guarda el estado de la bomba — igual que la laptop."""
+    """
+    Actualiza el estado de la bomba en la ULTIMA fila existente,
+    en vez de insertar una fila nueva llena de ceros.
+    Asi no se pierden los datos de sensores mas recientes.
+    """
     db = get_supabase()
     if not db:
         return False
     try:
-        db.table("lecturas_sensores").insert({
-            "invernadero":      invernadero,
-            "humedad_s1":       0,
-            "humedad_s2":       0,
-            "humedad_s3":       0,
-            "humedad_a1":       0,
-            "humedad_a2":       0,
-            "temperatura":      0,
-            "nivel_agua_1":     0,
-            "nivel_agua_2":     0,
-            "bomba1_encendida": encendida if bomba == 1 else False,
-            "bomba2_encendida": encendida if bomba == 2 else False,
-            "modo_automatico":  False,
-        }).execute()
+        # 1. Buscar la ultima fila existente
+        resp = db.table("lecturas_sensores")\
+            .select("id")\
+            .order("created_at", desc=True)\
+            .limit(1)\
+            .execute()
+
+        campo = "bomba1_encendida" if bomba == 1 else "bomba2_encendida"
+
+        if resp.data:
+            # 2a. Ya existe una fila — actualizar solo el campo de la bomba
+            fila_id = resp.data[0]["id"]
+            db.table("lecturas_sensores")\
+                .update({campo: encendida})\
+                .eq("id", fila_id)\
+                .execute()
+        else:
+            # 2b. No existe ninguna fila todavia — crear una minima
+            db.table("lecturas_sensores").insert({
+                "invernadero":      invernadero,
+                "bomba1_encendida": encendida if bomba == 1 else False,
+                "bomba2_encendida": encendida if bomba == 2 else False,
+            }).execute()
+
         return True
     except Exception as e:
         print(f"[Supabase] Error al guardar bomba: {e}")
