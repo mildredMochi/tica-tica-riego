@@ -258,7 +258,7 @@ def _fila_sensor(nombre, valor, unidad):
 #  HELPER — bloque de bomba
 # ════════════════════════════════════════════════════════
 def _bloque_bomba(numero, encendida, nivel_agua, color_panel,
-                  guardar_bomba_fn, registrar_riego_fn, agregar_log_fn):
+                  crear_orden_fn, registrar_riego_fn, agregar_log_fn):
     """
     Dibuja el control de una bomba.
     Equivale a _build_bomba de la laptop.
@@ -278,7 +278,8 @@ def _bloque_bomba(numero, encendida, nivel_agua, color_panel,
         st.progress(min(nivel_agua / 100, 1.0))
         if st.button(f"Detener Riego de {cultivo}", key=key_stop,
                      use_container_width=True):
-            guardar_bomba_fn(st.session_state.sensor_invernadero, numero, False)
+            crear_orden_fn(numero, "apagar",
+                           invernadero=st.session_state.sensor_invernadero)
             agregar_log_fn(
                 st.session_state.sensor_invernadero,
                 f"Bomba {numero} detenida — {cultivo} — manual"
@@ -304,7 +305,8 @@ def _bloque_bomba(numero, encendida, nivel_agua, color_panel,
         else:
             if st.button(f"Iniciar Riego de {cultivo}", key=key_start,
                          use_container_width=True):
-                guardar_bomba_fn(st.session_state.sensor_invernadero, numero, True)
+                crear_orden_fn(numero, "encender", duracion_minutos=limite,
+                               invernadero=st.session_state.sensor_invernadero)
                 registrar_riego_fn(
                     date.today(),
                     f"Manual — {cultivo}",
@@ -329,14 +331,16 @@ def _bloque_bomba(numero, encendida, nivel_agua, color_panel,
 #  y Bomba 2 controla la zona B, cada una con su propio tanque.
 # ════════════════════════════════════════════════════════
 def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
-                            guardar_bomba_fn, registrar_riego_fn, agregar_log_fn):
+                            crear_orden_fn, obtener_estado_fn,
+                            registrar_riego_fn, agregar_log_fn):
     """
     Panel completo de lecturas y control de bombas.
 
     Parametros:
         cargar_sensores_fn  — carga ultima lectura de sensores (compartida)
         cargar_historial_fn — carga historial para graficos (compartido)
-        guardar_bomba_fn    — guarda estado de bomba en Supabase
+        crear_orden_fn      — crea orden de bomba real (la ejecuta el ESP32)
+        obtener_estado_fn   — lee el estado real confirmado por el ESP32
         registrar_riego_fn  — registra un riego en Supabase
         agregar_log_fn      — agrega log de actividad en Supabase
     """
@@ -429,15 +433,18 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
         etiqueta_bomba = "Bomba 1 — Verduras (tanque A)" if numero_bomba_propia == 1 else "Bomba 2 — Papa (tanque B)"
         st.markdown(f'<div class="sub-seccion">{etiqueta_bomba}</div>', unsafe_allow_html=True)
 
-        campo_bomba  = "bomba1_encendida" if numero_bomba_propia == 1 else "bomba2_encendida"
         campo_nivel  = "nivel_agua_1" if numero_bomba_propia == 1 else "nivel_agua_2"
+
+        # Estado REAL confirmado por el ESP32 (no el que insertaria el celular)
+        estado_bombas = obtener_estado_fn(inv)
+        campo_estado  = "bomba1" if numero_bomba_propia == 1 else "bomba2"
 
         _bloque_bomba(
             numero        = numero_bomba_propia,
-            encendida     = datos.get(campo_bomba, False),
+            encendida     = estado_bombas.get(campo_estado, False),
             nivel_agua    = datos.get(campo_nivel, 0),
             color_panel   = c_borde,
-            guardar_bomba_fn   = guardar_bomba_fn,
+            crear_orden_fn     = crear_orden_fn,
             registrar_riego_fn = registrar_riego_fn,
             agregar_log_fn     = agregar_log_fn,
         )
@@ -469,7 +476,8 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
 #  (decide si mostrar seleccion o panel)
 # ════════════════════════════════════════════════════════
 def mostrar_sensores(cargar_sensores_fn, cargar_historial_fn,
-                     guardar_bomba_fn, registrar_riego_fn, agregar_log_fn):
+                     crear_orden_fn, obtener_estado_fn,
+                     registrar_riego_fn, agregar_log_fn):
     """
     Punto de entrada desde app.py.
     Si no hay invernadero seleccionado muestra la seleccion,
@@ -481,7 +489,8 @@ def mostrar_sensores(cargar_sensores_fn, cargar_historial_fn,
         mostrar_panel_sensores(
             cargar_sensores_fn  = cargar_sensores_fn,
             cargar_historial_fn = cargar_historial_fn,
-            guardar_bomba_fn    = guardar_bomba_fn,
+            crear_orden_fn      = crear_orden_fn,
+            obtener_estado_fn   = obtener_estado_fn,
             registrar_riego_fn  = registrar_riego_fn,
             agregar_log_fn      = agregar_log_fn,
         )

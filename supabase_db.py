@@ -129,6 +129,58 @@ def guardar_estado_bomba(invernadero: str, bomba: int, encendida: bool) -> bool:
 
 
 # ════════════════════════════════════════════════════════════════
+#  BOMBAS — ORDENES REALES AL ESP32 (igual que la laptop)
+#  NOTA: esta es la forma CORRECTA de encender/apagar la bomba.
+#  Nunca se debe escribir bomba1_encendida/bomba2_encendida a mano
+#  desde la app (eso es lo que hacia guardar_estado_bomba arriba y
+#  no mueve el rele fisico) — el ESP32 es el unico que ejecuta
+#  ordenes de 'ordenes_bomba' y luego reporta el estado real.
+# ════════════════════════════════════════════════════════════════
+def crear_orden_bomba(bomba: int, accion: str, duracion_minutos: int = 0,
+                       invernadero: str = "Escuela Elizardo Pérez A") -> bool:
+    """Inserta una orden en 'ordenes_bomba' para que el ESP32 la ejecute."""
+    db = get_supabase()
+    if not db:
+        return False
+    try:
+        db.table("ordenes_bomba").insert({
+            "invernadero":      invernadero,
+            "bomba":            bomba,
+            "accion":           accion,
+            "duracion_minutos": duracion_minutos,
+            "ejecutada":        False,
+        }).execute()
+        return True
+    except Exception as e:
+        print(f"[Supabase] Error al crear orden de bomba: {e}")
+        return False
+
+
+def obtener_estado_bombas(invernadero: str = "Escuela Elizardo Pérez A") -> dict:
+    """Lee el estado REAL confirmado por el ESP32 (ultima fila de lecturas_sensores)."""
+    db = get_supabase()
+    if not db:
+        return {}
+    try:
+        resp = db.table("lecturas_sensores")\
+            .select("bomba1_encendida, bomba2_encendida")\
+            .eq("invernadero", invernadero)\
+            .order("created_at", desc=True)\
+            .limit(1)\
+            .execute()
+        if resp.data:
+            d = resp.data[0]
+            return {
+                "bomba1": bool(d.get("bomba1_encendida", False)),
+                "bomba2": bool(d.get("bomba2_encendida", False)),
+            }
+        return {}
+    except Exception as e:
+        print(f"[Supabase] Error al leer estado de bombas: {e}")
+        return {}
+
+
+# ════════════════════════════════════════════════════════════════
 #  RIEGOS
 # ════════════════════════════════════════════════════════════════
 def cargar_riegos(invernadero: str) -> dict:

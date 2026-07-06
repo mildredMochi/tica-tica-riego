@@ -16,7 +16,8 @@ from supabase_db import (
     get_supabase,
     cargar_sensores_recientes,
     cargar_historial_sensores,
-    guardar_estado_bomba,
+    crear_orden_bomba,
+    obtener_estado_bombas,
     cargar_riegos,
     registrar_riego,
     eliminar_riego,
@@ -57,7 +58,8 @@ def main():
         mostrar_sensores(
             cargar_sensores_fn   = cargar_sensores_recientes,
             cargar_historial_fn  = cargar_historial_sensores,
-            guardar_bomba_fn     = guardar_estado_bomba,
+            crear_orden_fn       = crear_orden_bomba,
+            obtener_estado_fn    = obtener_estado_bombas,
             registrar_riego_fn   = registrar_riego,
             agregar_log_fn       = agregar_log,
         )
