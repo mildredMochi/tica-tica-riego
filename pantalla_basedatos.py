@@ -241,6 +241,7 @@ def mostrar_basedatos(get_supabase_fn):
                     </tr>
                     """
                 tabla += "</tbody></table></div>"
+                tabla = "\n".join(line.strip() for line in tabla.strip().split("\n"))
                 st.markdown(tabla, unsafe_allow_html=True)
 
         except Exception as e:
@@ -324,6 +325,7 @@ def mostrar_basedatos(get_supabase_fn):
                     </tr>
                     """
                 tabla += "</tbody></table></div>"
+                tabla = "\n".join(line.strip() for line in tabla.strip().split("\n"))
                 st.markdown(tabla, unsafe_allow_html=True)
 
                 # Metrica total — igual que la laptop
