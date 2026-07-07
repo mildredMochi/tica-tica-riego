@@ -300,25 +300,22 @@ def _bloque_bomba(numero, encendida, nivel_agua, color_panel,
             min_value=1, max_value=120, value=15, key=key_lim
         )
 
-        if nivel_agua > 0 and nivel_agua < 20:
-            st.error("Nivel de agua muy bajo. No se puede iniciar el riego.")
-        else:
-            if st.button(f"Iniciar Riego de {cultivo}", key=key_start,
-                         use_container_width=True):
-                crear_orden_fn(numero, "encender", duracion_minutos=limite,
-                               invernadero=st.session_state.sensor_invernadero)
-                registrar_riego_fn(
-                    date.today(),
-                    f"Manual — {cultivo}",
-                    st.session_state.sensor_invernadero,
-                    st.session_state.get("usuario", "")
-                )
-                agregar_log_fn(
-                    st.session_state.sensor_invernadero,
-                    f"Bomba {numero} iniciada — {cultivo} — limite {limite} min"
-                )
-                st.success(f"Bomba {numero} iniciada — Limite: {limite} min")
-                st.rerun()
+        if st.button(f"Iniciar Riego de {cultivo}", key=key_start,
+                     use_container_width=True):
+            crear_orden_fn(numero, "encender", duracion_minutos=limite,
+                           invernadero=st.session_state.sensor_invernadero)
+            registrar_riego_fn(
+                date.today(),
+                f"Manual — {cultivo}",
+                st.session_state.sensor_invernadero,
+                st.session_state.get("usuario", "")
+            )
+            agregar_log_fn(
+                st.session_state.sensor_invernadero,
+                f"Bomba {numero} iniciada — {cultivo} — limite {limite} min"
+            )
+            st.success(f"Bomba {numero} iniciada — Limite: {limite} min")
+            st.rerun()
 
 
 # ════════════════════════════════════════════════════════
