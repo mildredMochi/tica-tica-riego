@@ -16,11 +16,17 @@ INVERNADEROS = [
 IMG_ESCUELA = "imagenes/E1.jpg"
 IMG_COLEGIO = "imagenes/E2.jpg"
 
+# ── COLOR DE FONDO DE ESTA PANTALLA ──────────────────────
+# Para cambiarlo, solo edita este valor (formato hexadecimal #RRGGBB).
+# Ejemplos: "#1a3a1a" verde oscuro, "#03053A" azul marino,
+#           "#2d2d2d" gris oscuro, "#0d4a6b" celeste oscuro
+COLOR_FONDO_SENSORES = "#1a3a1a"
+
 # ── CSS ─────────────────────────────────────────────────
 CSS_SENSORES = """
 <style>
     .stApp {
-        background: linear-gradient(135deg, #1a7a2e 0%, #0d4a6b 50%, #03053A 100%) !important;
+        background: __COLOR_FONDO__ !important;
         min-height: 100vh;
     }
     [data-testid="stAppViewContainer"] { background: transparent !important; }
@@ -176,6 +182,9 @@ CSS_SENSORES = """
     [data-testid="stToolbar"] { visibility: hidden; }
 </style>
 """
+
+# Se inserta aqui el color de fondo definido en COLOR_FONDO_SENSORES
+CSS_SENSORES = CSS_SENSORES.replace("__COLOR_FONDO__", COLOR_FONDO_SENSORES)
 
 
 # ════════════════════════════════════════════════════════
@@ -427,19 +436,30 @@ def mostrar_panel_sensores(cargar_sensores_fn, cargar_historial_fn,
 
         st.markdown(f'<div class="sub-seccion" style="color:white;">{inv}</div>', unsafe_allow_html=True)
 
-        etiqueta_bomba = "Bomba 1 — Verduras (tanque A)" if numero_bomba_propia == 1 else "Bomba 2 — Papa (tanque B)"
-        st.markdown(f'<div class="sub-seccion">{etiqueta_bomba}</div>', unsafe_allow_html=True)
-
-        campo_nivel  = "nivel_agua_1" if numero_bomba_propia == 1 else "nivel_agua_2"
-
-        # Estado REAL confirmado por el ESP32 (no el que insertaria el celular)
+        # Estado REAL confirmado por el ESP32 (no el que insertaria el celular).
+        # Se lee UNA sola vez porque es compartido entre las dos zonas.
         estado_bombas = obtener_estado_fn(inv)
-        campo_estado  = "bomba1" if numero_bomba_propia == 1 else "bomba2"
 
+        # ── Bomba 1 — Verduras (tanque A) ─────────────────
+        st.markdown('<div class="sub-seccion">Bomba 1 — Verduras (tanque A)</div>', unsafe_allow_html=True)
         _bloque_bomba(
-            numero        = numero_bomba_propia,
-            encendida     = estado_bombas.get(campo_estado, False),
-            nivel_agua    = datos.get(campo_nivel, 0),
+            numero        = 1,
+            encendida     = estado_bombas.get("bomba1", False),
+            nivel_agua    = datos.get("nivel_agua_1", 0),
+            color_panel   = c_borde,
+            crear_orden_fn     = crear_orden_fn,
+            registrar_riego_fn = registrar_riego_fn,
+            agregar_log_fn     = agregar_log_fn,
+        )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Bomba 2 — Papa (tanque B) ─────────────────────
+        st.markdown('<div class="sub-seccion">Bomba 2 — Papa (tanque B)</div>', unsafe_allow_html=True)
+        _bloque_bomba(
+            numero        = 2,
+            encendida     = estado_bombas.get("bomba2", False),
+            nivel_agua    = datos.get("nivel_agua_2", 0),
             color_panel   = c_borde,
             crear_orden_fn     = crear_orden_fn,
             registrar_riego_fn = registrar_riego_fn,

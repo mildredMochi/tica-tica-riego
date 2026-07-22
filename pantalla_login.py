@@ -12,8 +12,8 @@ USUARIOS = {
 }
 
 INVERNADEROS = [
-    "Escuela Elizardo Perez A",
-    "Colegio Elizardo Perez B"
+    "Escuela Elizardo Pérez A",
+    "Colegio Elizardo Pérez B"
 ]
 
 # ── CSS ESTILOS LOGIN ────────────────────────────────────

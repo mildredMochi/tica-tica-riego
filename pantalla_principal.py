@@ -14,8 +14,8 @@ MESES = [
 ]
 
 INVERNADEROS = [
-    "Escuela Elizardo Perez A",
-    "Colegio Elizardo Perez B"
+    "Escuela Elizardo Pérez A",
+    "Colegio Elizardo Pérez B"
 ]
 
 # Imagenes — mismos nombres que en tu laptop
@@ -156,9 +156,6 @@ def mostrar_principal(cargar_riegos_fn, cargar_errores_fn):
     st.markdown(f"""
     <div class="header-principal">
         SISTEMA DE RIEGO DEL DISTRITO MUNICIPAL ORIGINARIO DE TICA-TICA
-        <div class="header-sub">
-            {st.session_state.get('rol', '')} — {st.session_state.get('usuario', '')}
-        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -299,14 +296,8 @@ def mostrar_principal(cargar_riegos_fn, cargar_errores_fn):
         img_html = tag_imagen(IMG_BASEDATOS, "card-img")
         st.markdown(f"""
         <div class="card-menu">
-            <div style="background:#2d6e1a;color:white;border-radius:6px;
-                        padding:2px 10px;font-size:10px;font-weight:bold;
-                        align-self:flex-start;">NUEVO</div>
             <div class="card-titulo">BASE DE DATOS</div>
             {img_html}
-            <div style="font-size:11px;color:#1565c0;">
-                Historial &middot; Registros &middot; Lecturas &middot; Logs
-            </div>
         </div>
         """, unsafe_allow_html=True)
         st.write("")

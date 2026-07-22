@@ -156,15 +156,20 @@ def crear_orden_bomba(bomba: int, accion: str, duracion_minutos: int = 0,
         return False
 
 
-def obtener_estado_bombas(invernadero: str = "Escuela Elizardo Pérez A") -> dict:
-    """Lee el estado REAL confirmado por el ESP32 (ultima fila de lecturas_sensores)."""
+def obtener_estado_bombas(invernadero: str = None) -> dict:
+    """
+    Lee el estado REAL confirmado por el ESP32 (ultima fila de lecturas_sensores).
+    NOTA: ya NO se filtra por invernadero. Las bombas 1 y 2 se leen siempre
+    de la misma fila compartida, sin importar desde que zona (A o B) se
+    esta consultando — igual que cargar_sensores_recientes(). El parametro
+    invernadero se deja opcional solo por compatibilidad con quien lo llame.
+    """
     db = get_supabase()
     if not db:
         return {}
     try:
         resp = db.table("lecturas_sensores")\
             .select("bomba1_encendida, bomba2_encendida")\
-            .eq("invernadero", invernadero)\
             .order("created_at", desc=True)\
             .limit(1)\
             .execute()
